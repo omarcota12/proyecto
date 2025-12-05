@@ -1,13 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend para proyecto de encriptación",
+  "main": "server.js",
   "scripts": {
-  "start": "server.js",
-  "test": "echo \"Error: no test specified\" && exit 1"
-}
-,
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,3 +22,4 @@
     "sqlite3": "^5.1.7"
   }
 }
+
