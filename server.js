@@ -19,8 +19,8 @@ app.use(cors());
 
 // Rate limit
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP
+  windowMs: 15 * 60 * 1000,
+  max: 100,
 });
 app.use(limiter);
 
@@ -28,15 +28,11 @@ app.use(limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/crypto', cryptoRoutes);
 
-// Servir frontend desde la carpeta public/
+// Servir frontend desde public/
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback SPA: todas las rutas que no sean API van al index.html
-app.get('*', (req, res) => {
-  if (req.originalUrl.startsWith('/api')) {
-    // Si es ruta API inválida, respondemos con 404 JSON
-    return res.status(404).json({ message: 'Ruta API no encontrada' });
-  }
+// Fallback SPA: solo para rutas que NO son /api
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
