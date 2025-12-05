@@ -5,12 +5,15 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const path = require('path');
 
-const db = require('./db'); // Inicializa tu DB
+const db = require('./db'); // inicializa tu DB
 const authRoutes = require('./routes/auth');
 const cryptoRoutes = require('./routes/crypto');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
+
+// Indica que confíe en el proxy (necesario en Railway, Heroku, etc.)
+app.set('trust proxy', 1);
 
 // Middlewares
 app.use(helmet());
@@ -19,8 +22,10 @@ app.use(cors());
 
 // Rate limit
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100,                 // Máximo 100 requests por IP
+  standardHeaders: true,    // Devuelve info de límite en headers
+  legacyHeaders: false,     // Desactiva headers viejos
 });
 app.use(limiter);
 
@@ -31,10 +36,13 @@ app.use('/api/crypto', cryptoRoutes);
 // Servir frontend desde public/
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback SPA: solo para rutas que NO son /api
-app.get(/^\/(?!api).*/, (req, res) => {
+// Fallback para SPA: cualquier ruta que no sea API
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Iniciar servidor
-app.listen(PORT, () => console.log(`Server corriendo en puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server corriendo en puerto ${PORT}`);
+  console.log(`Conectado a la DB SQLite: ${db.filename || '/app/database.sqlite'}`);
+});
