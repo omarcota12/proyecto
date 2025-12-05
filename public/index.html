@@ -1,52 +1,134 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Proyecto Encriptación — Demo</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Proyecto Encriptación — Demo</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:18px;background:#f6f8fb}
+    .card{background:#fff;padding:18px;border-radius:8px;box-shadow:0 6px 18px rgba(10,20,40,0.06);margin-bottom:12px}
+    input,textarea,button{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid #dcdfe6}
+    button{background:#0b63d8;color:white;border:0;padding:10px}
+    .row{display:flex;gap:12px}
+    .row > *{flex:1}
+  </style>
 </head>
 <body>
-<h1>Demo HyPER — Encriptación</h1>
+  <h1>Demo HyPER — Encriptación</h1>
 
-<div class="card">
-  <h3>Registro</h3>
-  <input id="r_email" placeholder="email"/>
-  <input id="r_pwd" placeholder="contraseña" type="password"/>
-  <button id="btnRegister">Registrar</button>
-  <div id="regMsg"></div>
-</div>
-
-<div class="card">
-  <h3>Login</h3>
-  <input id="l_email" placeholder="email"/>
-  <input id="l_pwd" placeholder="contraseña" type="password"/>
-  <button id="btnLogin">Iniciar Sesión</button>
-  <div id="loginMsg"></div>
-</div>
-
-<div id="authSection" style="display:none">
   <div class="card">
-    <h3>Encriptar</h3>
-    <textarea id="plain" rows="4" placeholder="Texto claro"></textarea>
-    <input id="enc_pwd" placeholder="Contraseña/key para encriptar"/>
-    <button id="btnEnc">Encriptar</button>
-    <textarea id="cipher" rows="4" readonly placeholder="Criptograma"></textarea>
+    <h3>Registro</h3>
+    <input id="r_email" placeholder="email"/>
+    <input id="r_pwd" placeholder="contraseña" type="password"/>
+    <button id="btnRegister">Registrar</button>
+    <div id="regMsg"></div>
   </div>
 
   <div class="card">
-    <h3>Desencriptar</h3>
-    <textarea id="cipher_in" rows="4" placeholder="Pega aquí el criptograma"></textarea>
-    <input id="dec_pwd" placeholder="Contraseña/key para desencriptar"/>
-    <button id="btnDec">Desencriptar</button>
-    <textarea id="plain_out" rows="4" readonly placeholder="Texto claro"></textarea>
+    <h3>Login</h3>
+    <input id="l_email" placeholder="email"/>
+    <input id="l_pwd" placeholder="contraseña" type="password"/>
+    <button id="btnLogin">Iniciar Sesión</button>
+    <div id="loginMsg"></div>
   </div>
 
-  <div class="card">
-    <button id="btnLogout">Cerrar sesión</button>
-  </div>
-</div>
+  <div id="authSection" style="display:none">
+    <div class="card">
+      <h3>Encriptar</h3>
+      <textarea id="plain" rows="4" placeholder="Texto claro"></textarea>
+      <input id="enc_pwd" placeholder="Contraseña/key para encriptar"/>
+      <button id="btnEnc">Encriptar</button>
+      <textarea id="cipher" rows="4" readonly placeholder="Criptograma"></textarea>
+    </div>
 
-<script src="script.js"></script>
+    <div class="card">
+      <h3>Desencriptar</h3>
+      <textarea id="cipher_in" rows="4" placeholder="Pega aquí el criptograma"></textarea>
+      <input id="dec_pwd" placeholder="Contraseña/key para desencriptar"/>
+      <button id="btnDec">Desencriptar</button>
+      <textarea id="plain_out" rows="4" readonly placeholder="Texto claro"></textarea>
+    </div>
+
+    <div class="card">
+      <button id="btnLogout">Cerrar sesión</button>
+    </div>
+  </div>
+
+<script>
+  const API = 'http://localhost:4000/api';
+  let token = null;
+
+  // helpers
+  function setMsg(el, txt){ el.innerText = txt; setTimeout(()=>el.innerText='', 4000); }
+
+  // Register
+  document.getElementById('btnRegister').addEventListener('click', async ()=>{
+    const email = document.getElementById('r_email').value.trim();
+    const password = document.getElementById('r_pwd').value;
+    const msg = document.getElementById('regMsg');
+    if(!email||!password){ setMsg(msg,'Faltan campos'); return; }
+    const resp = await fetch(API+'/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await resp.json();
+    if(!resp.ok){ setMsg(msg, data.message || 'Error'); return; }
+    setMsg(msg,'Registrado. Ahora inicia sesión.');
+  });
+
+  // Login
+  document.getElementById('btnLogin').addEventListener('click', async ()=>{
+    const email = document.getElementById('l_email').value.trim();
+    const password = document.getElementById('l_pwd').value;
+    const msg = document.getElementById('loginMsg');
+    if(!email||!password){ setMsg(msg,'Faltan campos'); return; }
+    const resp = await fetch(API+'/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await resp.json();
+    if(!resp.ok){ setMsg(msg, data.message || 'Error'); return; }
+    token = data.token;
+    localStorage.setItem('token', token);
+    setMsg(msg,'Login OK');
+    document.getElementById('authSection').style.display = 'block';
+  });
+
+  // check token on load
+  window.addEventListener('load', ()=> {
+    const t = localStorage.getItem('token');
+    if(t){ token = t; document.getElementById('authSection').style.display = 'block'; }
+  });
+
+  document.getElementById('btnEnc').addEventListener('click', async ()=>{
+    const plain = document.getElementById('plain').value;
+    const password = document.getElementById('enc_pwd').value;
+    if(!token) return alert('Inicia sesión');
+    const resp = await fetch(API+'/crypto/encrypt', {
+      method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      body: JSON.stringify({ plain, password })
+    });
+    const data = await resp.json();
+    if(!resp.ok) return alert(data.message || 'Error');
+    document.getElementById('cipher').value = data.cipher;
+  });
+
+  document.getElementById('btnDec').addEventListener('click', async ()=>{
+    const cipher = document.getElementById('cipher_in').value;
+    const password = document.getElementById('dec_pwd').value;
+    if(!token) return alert('Inicia sesión');
+    const resp = await fetch(API+'/crypto/decrypt', {
+      method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      body: JSON.stringify({ cipher, password })
+    });
+    const data = await resp.json();
+    if(!resp.ok) return alert(data.message || 'Error');
+    document.getElementById('plain_out').value = data.plain;
+  });
+
+  document.getElementById('btnLogout').addEventListener('click', ()=>{
+    token = null; localStorage.removeItem('token'); document.getElementById('authSection').style.display = 'none';
+  });
+</script>
 </body>
 </html>

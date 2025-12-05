@@ -1,48 +1,32 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
+const app = express();
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
-const path = require('path');
-
-const db = require('./db');
+const db = require('./db'); // solo para inicializar
 const authRoutes = require('./routes/auth');
 const cryptoRoutes = require('./routes/crypto');
 
-const app = express();
-const PORT = process.env.PORT || 8080;
-
-// Trust proxy (para express-rate-limit en Railway, Heroku, etc.)
-app.set('trust proxy', 1);
+const PORT = process.env.PORT || 4000;
 
 // Middlewares
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
-app.use(cors());
-
-// Rate limit
+app.use(cors({ origin: 'http://127.0.0.1:5500' })); // ajusta el origen si usas live-server
+// rate limit (ejemplo para endpoints auth)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use(limiter);
 
-// Rutas API
+// Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/crypto', cryptoRoutes);
 
-// Servir frontend desde public/
-app.use(express.static(path.join(__dirname, 'public')));
+// ruta raíz simple
+app.get('/', (req, res) => res.json({ message: 'API Encriptación activa' }));
 
-// Fallback SPA
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Iniciar servidor
-app.listen(PORT, () => {
-  console.log(`Server corriendo en puerto ${PORT}`);
-  console.log(`Conectado a la DB SQLite: ${db.filename || '/app/database.sqlite'}`);
-});
+app.listen(PORT, () => console.log(`Server corriendo en http://localhost:${PORT}`));
