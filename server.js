@@ -5,14 +5,14 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const path = require('path');
 
-const db = require('./db'); // inicializa tu DB
+const db = require('./db');
 const authRoutes = require('./routes/auth');
 const cryptoRoutes = require('./routes/crypto');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// Indica que confíe en el proxy (necesario en Railway, Heroku, etc.)
+// Trust proxy (para express-rate-limit en Railway, Heroku, etc.)
 app.set('trust proxy', 1);
 
 // Middlewares
@@ -22,10 +22,10 @@ app.use(cors());
 
 // Rate limit
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100,                 // Máximo 100 requests por IP
-  standardHeaders: true,    // Devuelve info de límite en headers
-  legacyHeaders: false,     // Desactiva headers viejos
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use(limiter);
 
@@ -36,8 +36,8 @@ app.use('/api/crypto', cryptoRoutes);
 // Servir frontend desde public/
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback para SPA: cualquier ruta que no sea API
-app.get('*', (req, res) => {
+// Fallback SPA
+app.get('/*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
