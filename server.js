@@ -5,9 +5,8 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const path = require('path');
 
-// Inicializar DB
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database.db'); // crea DB local si no existe
+const db = new sqlite3.Database('./database.db');
 
 const authRoutes = require('./routes/auth');
 const cryptoRoutes = require('./routes/crypto');
@@ -34,8 +33,8 @@ app.use('/api/crypto', cryptoRoutes);
 // Servir frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback SPA Express 5
-app.get('/:pathMatch(.*)*', (req, res) => {
+// Fallback SPA
+app.get('*', (req, res) => {
   if (req.originalUrl.startsWith('/api')) {
     return res.status(404).json({ message: 'Ruta API no encontrada' });
   }
@@ -48,5 +47,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Ocurrió un error en el servidor' });
 });
 
-// Iniciar servidor
 app.listen(PORT, () => console.log(`Server corriendo en puerto ${PORT}`));
