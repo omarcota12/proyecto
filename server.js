@@ -5,9 +5,7 @@ const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const path = require('path');
 
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database.db');
-
+const db = require('./db'); // Inicializa tu DB
 const authRoutes = require('./routes/auth');
 const cryptoRoutes = require('./routes/crypto');
 
@@ -21,8 +19,8 @@ app.use(cors());
 
 // Rate limit
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 100, // máximo 100 requests por IP
 });
 app.use(limiter);
 
@@ -30,21 +28,17 @@ app.use(limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/crypto', cryptoRoutes);
 
-// Servir frontend
+// Servir frontend desde la carpeta public/
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Fallback SPA
+// Fallback SPA: todas las rutas que no sean API van al index.html
 app.get('*', (req, res) => {
   if (req.originalUrl.startsWith('/api')) {
+    // Si es ruta API inválida, respondemos con 404 JSON
     return res.status(404).json({ message: 'Ruta API no encontrada' });
   }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Manejo de errores globales
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Ocurrió un error en el servidor' });
-});
-
+// Iniciar servidor
 app.listen(PORT, () => console.log(`Server corriendo en puerto ${PORT}`));
