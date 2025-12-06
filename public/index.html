@@ -19,8 +19,9 @@
 
   <div class="card">
     <h3>Registro</h3>
-    <input id="r_email" placeholder="email"/>
-    <input id="r_pwd" placeholder="contraseña" type="password" autocomplete="new-password"/>
+    <input id="r_name" placeholder="Nombre"/>
+    <input id="r_email" placeholder="Email"/>
+    <input id="r_pwd" placeholder="Contraseña" type="password" autocomplete="new-password"/>
     <div><small id="pwdHelp">Mín 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo.</small></div>
     <button id="btnRegister">Registrar</button>
     <div id="regMsg"></div>
@@ -28,8 +29,8 @@
 
   <div class="card">
     <h3>Login</h3>
-    <input id="l_email" placeholder="email"/>
-    <input id="l_pwd" placeholder="contraseña" type="password" autocomplete="current-password"/>
+    <input id="l_email" placeholder="Email"/>
+    <input id="l_pwd" placeholder="Contraseña" type="password" autocomplete="current-password"/>
     <button id="btnLogin">Iniciar Sesión</button>
     <div id="loginMsg"></div>
   </div>
@@ -79,17 +80,22 @@
 
   // Register
   document.getElementById('btnRegister').addEventListener('click', async ()=>{
+    const nombre = document.getElementById('r_name').value.trim();
     const email = document.getElementById('r_email').value.trim();
     const password = document.getElementById('r_pwd').value;
     const msg = document.getElementById('regMsg');
-    if(!email||!password){ setMsg(msg,'Faltan campos'); return; }
+
+    if(!nombre || !email || !password){ setMsg(msg,'Faltan campos'); return; }
     if(!strongRegex.test(password)){ setMsg(msg,'Contraseña no cumple requisitos'); return; }
+
     const resp = await fetch(API+'/auth/register', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, password })
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ nombre, email, password })
     });
+
     const data = await resp.json();
-    if(!resp.ok){ setMsg(msg, data.message || 'Error'); return; }
+    if(!resp.ok){ setMsg(msg, data.error || 'Error'); return; }
     setMsg(msg,'Registrado. Ahora inicia sesión.');
   });
 
@@ -99,12 +105,16 @@
     const password = document.getElementById('l_pwd').value;
     const msg = document.getElementById('loginMsg');
     if(!email||!password){ setMsg(msg,'Faltan campos'); return; }
+
     const resp = await fetch(API+'/auth/login', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ email, password })
     });
+
     const data = await resp.json();
-    if(!resp.ok){ setMsg(msg, data.message || 'Error'); return; }
+    if(!resp.ok){ setMsg(msg, data.error || 'Error'); return; }
+
     token = data.token;
     localStorage.setItem('token', token);
     setMsg(msg,'Login OK');
@@ -123,12 +133,15 @@
     const password = document.getElementById('enc_pwd').value;
     if(!token) return alert('Inicia sesión');
     if(!password) return alert('Introduce la clave para encriptar');
+
     const resp = await fetch(API+'/crypto/encrypt', {
-      method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ plain, password })
     });
+
     const data = await resp.json();
-    if(!resp.ok) return alert(data.message || 'Error');
+    if(!resp.ok) return alert(data.error || 'Error');
     document.getElementById('cipher').value = data.cipher;
   });
 
@@ -138,19 +151,23 @@
     const password = document.getElementById('dec_pwd').value;
     if(!token) return alert('Inicia sesión');
     if(!password) return alert('Introduce la clave para desencriptar');
+
     const resp = await fetch(API+'/crypto/decrypt', {
-      method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ cipher, password })
     });
+
     const data = await resp.json();
-    if(!resp.ok) return alert(data.message || 'Error');
+    if(!resp.ok) return alert(data.error || 'Error');
     document.getElementById('plain_out').value = data.plain;
   });
 
   document.getElementById('btnLogout').addEventListener('click', ()=>{
-    token = null; localStorage.removeItem('token'); document.getElementById('authSection').style.display = 'none';
+    token = null; 
+    localStorage.removeItem('token'); 
+    document.getElementById('authSection').style.display = 'none';
   });
 </script>
 </body>
 </html>
-
