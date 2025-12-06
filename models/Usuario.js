@@ -1,8 +1,6 @@
-// /models/Usuario.js
 import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 
-// Definimos el modelo y forzamos que use la tabla 'usuarios' en la DB
 const Usuarios = sequelize.define(
   "Usuarios",
   {
@@ -26,8 +24,8 @@ const Usuarios = sequelize.define(
     },
   },
   {
-    tableName: "Usuarios", // nombre exacto de la tabla en Railway
-    timestamps: true,      // opcional, si quieres createdAt y updatedAt
+    tableName: "Usuarios",
+    timestamps: true,
   }
 );
 

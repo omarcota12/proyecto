@@ -58,48 +58,42 @@
   </div>
 
 <script>
-  const API = 'postgresql://postgres:UxMrPLWgQjLjxLUeZSXTUzBRmlqgdRUs@yamabiko.proxy.rlwy.net:16391/railway';
+  const API = 'https://proyecto-production-544c.up.railway.app/api';
+
   let token = null;
 
   const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.,;:_\-]).{8,}$/;
 
   function setMsg(el, txt){ el.innerText = txt; setTimeout(()=>el.innerText='', 4000); }
 
-  // Bloquear copiar/pegar en inputs de password
-  function blockCopyPaste(id){
+  ['r_pwd','l_pwd','enc_pwd','dec_pwd'].forEach(id => {
     const el = document.getElementById(id);
-    if(!el) return;
     el.addEventListener('paste', e => e.preventDefault());
     el.addEventListener('copy', e => e.preventDefault());
     el.addEventListener('cut', e => e.preventDefault());
     el.addEventListener('dragstart', e => e.preventDefault());
     el.addEventListener('drop', e => e.preventDefault());
     el.setAttribute('autocomplete','off');
-  }
-  ['r_pwd','l_pwd','enc_pwd','dec_pwd'].forEach(blockCopyPaste);
+  });
 
-  // Register
   document.getElementById('btnRegister').addEventListener('click', async ()=>{
     const nombre = document.getElementById('r_name').value.trim();
     const email = document.getElementById('r_email').value.trim();
     const password = document.getElementById('r_pwd').value;
     const msg = document.getElementById('regMsg');
-
-    if(!nombre || !email || !password){ setMsg(msg,'Faltan campos'); return; }
+    if(!nombre||!email||!password){ setMsg(msg,'Faltan campos'); return; }
     if(!strongRegex.test(password)){ setMsg(msg,'Contraseña no cumple requisitos'); return; }
 
     const resp = await fetch(API+'/auth/register', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ nombre, email, password })
+      body: JSON.stringify({ nombre,email,password })
     });
-
     const data = await resp.json();
     if(!resp.ok){ setMsg(msg, data.error || 'Error'); return; }
     setMsg(msg,'Registrado. Ahora inicia sesión.');
   });
 
-  // Login
   document.getElementById('btnLogin').addEventListener('click', async ()=>{
     const email = document.getElementById('l_email').value.trim();
     const password = document.getElementById('l_pwd').value;
@@ -109,9 +103,8 @@
     const resp = await fetch(API+'/auth/login', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email,password })
     });
-
     const data = await resp.json();
     if(!resp.ok){ setMsg(msg, data.error || 'Error'); return; }
 
@@ -121,13 +114,11 @@
     document.getElementById('authSection').style.display = 'block';
   });
 
-  // on load check token
-  window.addEventListener('load', ()=> {
+  window.addEventListener('load', ()=>{
     const t = localStorage.getItem('token');
-    if(t){ token = t; document.getElementById('authSection').style.display = 'block'; }
+    if(t){ token=t; document.getElementById('authSection').style.display='block'; }
   });
 
-  // Encrypt
   document.getElementById('btnEnc').addEventListener('click', async ()=>{
     const plain = document.getElementById('plain').value;
     const password = document.getElementById('enc_pwd').value;
@@ -139,13 +130,11 @@
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ plain, password })
     });
-
     const data = await resp.json();
     if(!resp.ok) return alert(data.error || 'Error');
     document.getElementById('cipher').value = data.cipher;
   });
 
-  // Decrypt
   document.getElementById('btnDec').addEventListener('click', async ()=>{
     const cipher = document.getElementById('cipher_in').value;
     const password = document.getElementById('dec_pwd').value;
@@ -157,16 +146,13 @@
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
       body: JSON.stringify({ cipher, password })
     });
-
     const data = await resp.json();
     if(!resp.ok) return alert(data.error || 'Error');
     document.getElementById('plain_out').value = data.plain;
   });
 
   document.getElementById('btnLogout').addEventListener('click', ()=>{
-    token = null; 
-    localStorage.removeItem('token'); 
-    document.getElementById('authSection').style.display = 'none';
+    token=null; localStorage.removeItem('token'); document.getElementById('authSection').style.display='none';
   });
 </script>
 </body>

@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // Rutas
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 // Fallback SPA
 app.get("*", (req, res) => {
@@ -25,7 +25,7 @@ app.get("*", (req, res) => {
 });
 
 // Iniciar servidor
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 (async () => {
   try {
     await sequelize.authenticate();

@@ -5,6 +5,8 @@ import Usuario from "../models/Usuario.js";
 
 const router = Router();
 
+const rounds = parseInt(process.env.BCRYPT_ROUNDS) || 10;
+
 router.post("/register", async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
@@ -13,7 +15,7 @@ router.post("/register", async (req, res) => {
     const existe = await Usuario.findOne({ where: { email } });
     if (existe) return res.status(400).json({ error: "Correo ya registrado" });
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password, rounds);
     const user = await Usuario.create({ nombre, email, password: hashed });
 
     res.status(201).json({ message: "Usuario registrado", user });
