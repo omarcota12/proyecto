@@ -3,8 +3,8 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 
 // Definimos el modelo y forzamos que use la tabla 'usuarios' en la DB
-const Usuario = sequelize.define(
-  "Usuario",
+const Usuarios = sequelize.define(
+  "Usuarios",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -31,4 +31,4 @@ const Usuario = sequelize.define(
   }
 );
 
-export default Usuario;
+export default Usuarios;
