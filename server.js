@@ -5,8 +5,10 @@ import sequelize from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 
 dotenv.config();
+
 const app = express();
 
+// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -14,30 +16,25 @@ app.use(express.urlencoded({ extended: true }));
 // Servir frontend
 app.use(express.static("public"));
 
-// API
+// Rutas
 app.use("/auth", authRoutes);
 
-// Fallback
+// Fallback SPA
 app.get("*", (req, res) => {
   res.sendFile("index.html", { root: "public" });
 });
 
+// Iniciar servidor
 const PORT = process.env.PORT || 3000;
-
-async function start() {
+(async () => {
   try {
     await sequelize.authenticate();
-    console.log("Conectado a PostgreSQL");
-
+    console.log("Conectado a PostgreSQL.");
     await sequelize.sync({ alter: true });
-    console.log("Tablas listas");
+    console.log("Modelos sincronizados.");
 
-    app.listen(PORT, () =>
-      console.log(`Servidor corriendo en puerto ${PORT}`)
-    );
+    app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
   } catch (err) {
     console.error("Error al iniciar:", err);
   }
-}
-
-start();
+})();
