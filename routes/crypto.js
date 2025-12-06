@@ -1,4 +1,3 @@
-// routes/crypto.js
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
@@ -7,7 +6,6 @@ require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret';
 
-// Middleware simple para verificar JWT
 function authMiddleware(req, res, next) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ message: 'No autorizado' });
@@ -21,7 +19,6 @@ function authMiddleware(req, res, next) {
   });
 }
 
-// Encrypt (requiere { plain, password } en body)
 router.post('/encrypt', authMiddleware, (req, res) => {
   try {
     const { plain, password } = req.body || {};
@@ -36,7 +33,6 @@ router.post('/encrypt', authMiddleware, (req, res) => {
   }
 });
 
-// Decrypt (requiere { cipher, password } en body)
 router.post('/decrypt', authMiddleware, (req, res) => {
   try {
     const { cipher, password } = req.body || {};
@@ -57,3 +53,4 @@ router.post('/decrypt', authMiddleware, (req, res) => {
 });
 
 module.exports = router;
+

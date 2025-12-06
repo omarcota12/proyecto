@@ -11,6 +11,7 @@
     button{background:#0b63d8;color:white;border:0;padding:10px}
     .row{display:flex;gap:12px}
     .row > *{flex:1}
+    small.error{color:#c53030}
   </style>
 </head>
 <body>
@@ -19,7 +20,8 @@
   <div class="card">
     <h3>Registro</h3>
     <input id="r_email" placeholder="email"/>
-    <input id="r_pwd" placeholder="contraseña" type="password"/>
+    <input id="r_pwd" placeholder="contraseña" type="password" autocomplete="new-password"/>
+    <div><small id="pwdHelp">Mín 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo.</small></div>
     <button id="btnRegister">Registrar</button>
     <div id="regMsg"></div>
   </div>
@@ -27,7 +29,7 @@
   <div class="card">
     <h3>Login</h3>
     <input id="l_email" placeholder="email"/>
-    <input id="l_pwd" placeholder="contraseña" type="password"/>
+    <input id="l_pwd" placeholder="contraseña" type="password" autocomplete="current-password"/>
     <button id="btnLogin">Iniciar Sesión</button>
     <div id="loginMsg"></div>
   </div>
@@ -36,7 +38,7 @@
     <div class="card">
       <h3>Encriptar</h3>
       <textarea id="plain" rows="4" placeholder="Texto claro"></textarea>
-      <input id="enc_pwd" placeholder="Contraseña/key para encriptar"/>
+      <input id="enc_pwd" placeholder="Contraseña/key para encriptar" type="password"/>
       <button id="btnEnc">Encriptar</button>
       <textarea id="cipher" rows="4" readonly placeholder="Criptograma"></textarea>
     </div>
@@ -44,7 +46,7 @@
     <div class="card">
       <h3>Desencriptar</h3>
       <textarea id="cipher_in" rows="4" placeholder="Pega aquí el criptograma"></textarea>
-      <input id="dec_pwd" placeholder="Contraseña/key para desencriptar"/>
+      <input id="dec_pwd" placeholder="Contraseña/key para desencriptar" type="password"/>
       <button id="btnDec">Desencriptar</button>
       <textarea id="plain_out" rows="4" readonly placeholder="Texto claro"></textarea>
     </div>
@@ -58,8 +60,22 @@
   const API = 'http://localhost:4000/api';
   let token = null;
 
-  // helpers
+  const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.,;:_\-]).{8,}$/;
+
   function setMsg(el, txt){ el.innerText = txt; setTimeout(()=>el.innerText='', 4000); }
+
+  // Bloquear copiar/pegar en inputs de password
+  function blockCopyPaste(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('paste', e => e.preventDefault());
+    el.addEventListener('copy', e => e.preventDefault());
+    el.addEventListener('cut', e => e.preventDefault());
+    el.addEventListener('dragstart', e => e.preventDefault());
+    el.addEventListener('drop', e => e.preventDefault());
+    el.setAttribute('autocomplete','off');
+  }
+  ['r_pwd','l_pwd','enc_pwd','dec_pwd'].forEach(blockCopyPaste);
 
   // Register
   document.getElementById('btnRegister').addEventListener('click', async ()=>{
@@ -67,6 +83,7 @@
     const password = document.getElementById('r_pwd').value;
     const msg = document.getElementById('regMsg');
     if(!email||!password){ setMsg(msg,'Faltan campos'); return; }
+    if(!strongRegex.test(password)){ setMsg(msg,'Contraseña no cumple requisitos'); return; }
     const resp = await fetch(API+'/auth/register', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ email, password })
@@ -94,16 +111,18 @@
     document.getElementById('authSection').style.display = 'block';
   });
 
-  // check token on load
+  // on load check token
   window.addEventListener('load', ()=> {
     const t = localStorage.getItem('token');
     if(t){ token = t; document.getElementById('authSection').style.display = 'block'; }
   });
 
+  // Encrypt
   document.getElementById('btnEnc').addEventListener('click', async ()=>{
     const plain = document.getElementById('plain').value;
     const password = document.getElementById('enc_pwd').value;
     if(!token) return alert('Inicia sesión');
+    if(!password) return alert('Introduce la clave para encriptar');
     const resp = await fetch(API+'/crypto/encrypt', {
       method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
       body: JSON.stringify({ plain, password })
@@ -113,10 +132,12 @@
     document.getElementById('cipher').value = data.cipher;
   });
 
+  // Decrypt
   document.getElementById('btnDec').addEventListener('click', async ()=>{
     const cipher = document.getElementById('cipher_in').value;
     const password = document.getElementById('dec_pwd').value;
     if(!token) return alert('Inicia sesión');
+    if(!password) return alert('Introduce la clave para desencriptar');
     const resp = await fetch(API+'/crypto/decrypt', {
       method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
       body: JSON.stringify({ cipher, password })
@@ -132,3 +153,4 @@
 </script>
 </body>
 </html>
+

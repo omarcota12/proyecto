@@ -1,8 +1,8 @@
-
+// algoritmo/hyper.js
 const crypto = require('crypto');
 
 function deriveKey(password, salt, iterations = 100000, keyLen = 32) {
-  return crypto.pbkdf2Sync(password, salt, iterations, keyLen, 'sha256'); // Buffer
+  return crypto.pbkdf2Sync(password, salt, iterations, keyLen, 'sha256');
 }
 
 function xorBuffers(buf, keyBuf) {
@@ -11,11 +11,9 @@ function xorBuffers(buf, keyBuf) {
   return out;
 }
 
-// Deterministic pseudo-random permutation of indices using LCG seeded from key
 function permutationIndices(n, seed) {
   const idx = new Array(n);
   for (let i = 0; i < n; i++) idx[i] = i;
-  // simple LCG
   let s = seed >>> 0;
   function rand() { s = (1103515245 * s + 12345) >>> 0; return s / 0x100000000; }
   for (let i = n - 1; i > 0; i--) {
@@ -25,7 +23,6 @@ function permutationIndices(n, seed) {
   return idx;
 }
 
-// apply permutation to a buffer (byte-wise)
 function permuteBuffer(buf, seed) {
   const idx = permutationIndices(buf.length, seed);
   const out = Buffer.alloc(buf.length);
@@ -33,7 +30,6 @@ function permuteBuffer(buf, seed) {
   return out;
 }
 
-// invert permutation
 function invertPermutationIndices(idx) {
   const inv = new Array(idx.length);
   for (let i = 0; i < idx.length; i++) inv[idx[i]] = i;
@@ -47,7 +43,6 @@ function invertPermutedBuffer(buf, seed) {
   return out;
 }
 
-// AES-GCM encrypt
 function aesGcmEncrypt(plainBuf, keyBuf, iv) {
   const cipher = crypto.createCipheriv('aes-256-gcm', keyBuf, iv);
   const ct = Buffer.concat([cipher.update(plainBuf), cipher.final()]);
@@ -61,24 +56,15 @@ function aesGcmDecrypt(ctBuf, keyBuf, iv, tag) {
   return plain;
 }
 
-// High-level encrypt function that returns JSON-packaged payload
 function hyperEncrypt(plainText, password) {
   const salt = crypto.randomBytes(16);
   const iv = crypto.randomBytes(12);
   const derived = deriveKey(password, salt); // 32 bytes
-  // seed from first 4 bytes
   const seed = derived.readUInt32BE(0);
-  // permutation of plaintext
   const plainBuf = Buffer.from(plainText, 'utf8');
   const permuted = permuteBuffer(plainBuf, seed);
-
-  // AES-GCM
   const { ct, tag } = aesGcmEncrypt(permuted, derived, iv);
-
-  // XOR final
   const xored = xorBuffers(ct, derived);
-
-  // package as base64 parts
   return JSON.stringify({
     salt: salt.toString('base64'),
     iv: iv.toString('base64'),
@@ -93,13 +79,9 @@ function hyperDecrypt(payloadJson, password) {
   const iv = Buffer.from(obj.iv, 'base64');
   const tag = Buffer.from(obj.tag, 'base64');
   const xored = Buffer.from(obj.ct, 'base64');
-
   const derived = deriveKey(password, salt);
-  // undo XOR
   const ct = xorBuffers(xored, derived);
-  // decrypt AES-GCM
   const permuted = aesGcmDecrypt(ct, derived, iv, tag);
-  // invert permutation
   const seed = derived.readUInt32BE(0);
   const plainBuf = invertPermutedBuffer(permuted, seed);
   return plainBuf.toString('utf8');
