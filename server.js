@@ -1,34 +1,51 @@
-require('dotenv').config();
-const express = require('express');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const cors = require('cors');
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import sequelize from "./config/db.js";
+import authRoutes from "./routes/auth.js";
+import cryptoRoutes from "./routes/crypto.js";
 
-require('./config/db'); // <-- Importa conexión PostgreSQL
-
-const authRoutes = require('./routes/auth');
-const cryptoRoutes = require('./routes/crypto');
+dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 4000;
 
-app.use(helmet());
-app.use(express.json({ limit: '1mb' }));
-app.use(cors({ origin: '*' }));
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200
+// Servir frontend (carpeta public)
+app.use(express.static("public"));
+
+// Rutas de API
+app.use("/auth", authRoutes);
+app.use("/crypto", cryptoRoutes);
+
+// Fallback para SPA (sirve index.html para cualquier ruta no API)
+app.get("*", (req, res) => {
+  if (req.path.startsWith("/auth") || req.path.startsWith("/crypto")) {
+    return res.status(404).json({ error: "Ruta no encontrada" });
+  }
+  res.sendFile("index.html", { root: "public" });
 });
-app.use(limiter);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/crypto', cryptoRoutes);
+// Iniciar servidor
+const PORT = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-  res.json({ message: 'API Encriptación activa con PostgreSQL' });
-});
+async function startServer() {
+  try {
+    await sequelize.authenticate();
+    console.log("Conectado a PostgreSQL correctamente.");
 
-app.listen(PORT, () =>
-  console.log(`Server corriendo en http://localhost:${PORT}`)
-);
+    await sequelize.sync({ alter: true });
+    console.log("Modelos sincronizados.");
+
+    app.listen(PORT, () => {
+      console.log(`Servidor corriendo en puerto ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Error al iniciar:", error);
+  }
+}
+
+startServer();
