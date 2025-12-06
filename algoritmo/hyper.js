@@ -1,17 +1,16 @@
-// algoritmo/hyper.js
-const crypto = require('crypto');
+import crypto from "crypto";
 
-function deriveKey(password, salt, iterations = 100000, keyLen = 32) {
+export function deriveKey(password, salt, iterations = 100000, keyLen = 32) {
   return crypto.pbkdf2Sync(password, salt, iterations, keyLen, 'sha256');
 }
 
-function xorBuffers(buf, keyBuf) {
+export function xorBuffers(buf, keyBuf) {
   const out = Buffer.alloc(buf.length);
   for (let i = 0; i < buf.length; i++) out[i] = buf[i] ^ keyBuf[i % keyBuf.length];
   return out;
 }
 
-function permutationIndices(n, seed) {
+export function permutationIndices(n, seed) {
   const idx = new Array(n);
   for (let i = 0; i < n; i++) idx[i] = i;
   let s = seed >>> 0;
@@ -23,19 +22,20 @@ function permutationIndices(n, seed) {
   return idx;
 }
 
-function permuteBuffer(buf, seed) {
+export function permuteBuffer(buf, seed) {
   const idx = permutationIndices(buf.length, seed);
   const out = Buffer.alloc(buf.length);
   for (let i = 0; i < buf.length; i++) out[i] = buf[idx[i]];
   return out;
 }
 
-function invertPermutationIndices(idx) {
+export function invertPermutationIndices(idx) {
   const inv = new Array(idx.length);
   for (let i = 0; i < idx.length; i++) inv[idx[i]] = i;
   return inv;
 }
-function invertPermutedBuffer(buf, seed) {
+
+export function invertPermutedBuffer(buf, seed) {
   const idx = permutationIndices(buf.length, seed);
   const inv = invertPermutationIndices(idx);
   const out = Buffer.alloc(buf.length);
@@ -43,20 +43,21 @@ function invertPermutedBuffer(buf, seed) {
   return out;
 }
 
-function aesGcmEncrypt(plainBuf, keyBuf, iv) {
+export function aesGcmEncrypt(plainBuf, keyBuf, iv) {
   const cipher = crypto.createCipheriv('aes-256-gcm', keyBuf, iv);
   const ct = Buffer.concat([cipher.update(plainBuf), cipher.final()]);
   const tag = cipher.getAuthTag();
   return { ct, tag };
 }
-function aesGcmDecrypt(ctBuf, keyBuf, iv, tag) {
+
+export function aesGcmDecrypt(ctBuf, keyBuf, iv, tag) {
   const decipher = crypto.createDecipheriv('aes-256-gcm', keyBuf, iv);
   decipher.setAuthTag(tag);
   const plain = Buffer.concat([decipher.update(ctBuf), decipher.final()]);
   return plain;
 }
 
-function hyperEncrypt(plainText, password) {
+export function hyperEncrypt(plainText, password) {
   const salt = crypto.randomBytes(16);
   const iv = crypto.randomBytes(12);
   const derived = deriveKey(password, salt); // 32 bytes
@@ -73,7 +74,7 @@ function hyperEncrypt(plainText, password) {
   });
 }
 
-function hyperDecrypt(payloadJson, password) {
+export function hyperDecrypt(payloadJson, password) {
   const obj = JSON.parse(payloadJson);
   const salt = Buffer.from(obj.salt, 'base64');
   const iv = Buffer.from(obj.iv, 'base64');
@@ -86,5 +87,3 @@ function hyperDecrypt(payloadJson, password) {
   const plainBuf = invertPermutedBuffer(permuted, seed);
   return plainBuf.toString('utf8');
 }
-
-module.exports = { hyperEncrypt, hyperDecrypt };
