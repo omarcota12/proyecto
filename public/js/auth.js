@@ -1,3 +1,4 @@
+
 const API = "/api"; // si sirves desde el mismo dominio, sino pon la URL pública
 
 // util: mostrar mensaje breve
