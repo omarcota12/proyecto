@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Iniciar sesión</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <main class="card auth-card">
+    <h1>Iniciar sesión</h1>
+    <label>Correo</label>
+    <input id="l_email" type="email" placeholder="Ingresa tu correo" autocomplete="email">
+    <label>Contraseña</label>
+    <div class="pw-wrap">
+      <input id="l_pwd" type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" onpaste="return false" oncopy="return false" oncut="return false">
+      <button id="toggleLoginPw" class="icon-btn" aria-label="mostrar contraseña">👁</button>
+    </div>
+    <div class="msg" id="loginMsg"></div>
+    <button id="btnLogin" class="primary">Iniciar sesión</button>
+    <p class="muted">¿No tienes cuenta? <a href="/register.html">Crear cuenta</a></p>
+  </main>
+
+  <script type="module" src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Registrarse</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <main class="card auth-card">
+    <h1>Registrarse</h1>
+    <label>Nombre</label>
+    <input id="r_name" type="text" placeholder="Nombre completo" autocomplete="name">
+    <label>Correo</label>
+    <input id="r_email" type="email" placeholder="Correo" autocomplete="email">
+    <label>Contraseña</label>
+    <div class="pw-wrap">
+      <input id="r_pwd" type="password" placeholder="Contraseña" autocomplete="new-password" onpaste="return false" oncopy="return false" oncut="return false">
+      <button id="toggleRegisterPw" class="icon-btn" aria-label="mostrar contraseña">👁</button>
+    </div>
+    <small class="muted">Mín 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo.</small>
+    <div class="msg" id="regMsg"></div>
+    <button id="btnRegister" class="primary">Crear cuenta</button>
+    <p class="muted">¿Ya tienes cuenta? <a href="/login.html">Inicia sesión</a></p>
+  </main>
+
+  <script type="module" src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+:root{
+  --bg-overlay: rgba(0,0,0,0.55);
+  --card-bg: rgba(255,255,255,0.03);
+  --accent: #39a84f;
+  --muted: #cfcfcf;
+  --glass: rgba(255,255,255,0.06);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Inter, Arial, Helvetica, sans-serif;
+  min-height:100vh;
+  color:#fff;
+  background: linear-gradient(180deg, rgba(0,0,0,0.25), rgba(0,0,0,0.25));
+}
+
+/* background image (optional) */
+.page-bg{
+  position:fixed;inset:0;
+  background-image: url("/images/bg.jpg");
+  background-size: cover;background-position:center;
+  filter: blur(2px) brightness(0.6);
+  z-index:-1;
+}
+
+/* Centered auth cards */
+.auth-card{
+  width:360px;margin:6vh auto;padding:26px;border-radius:12px;
+  background: var(--bg-overlay);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+.auth-card h1{margin:0 0 12px 0;text-align:center}
+label{display:block;margin-top:10px;font-weight:600;color:#fff}
+input[type="text"],input[type="email"],input[type="password"],textarea{
+  width:100%;padding:10px 12px;margin-top:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);
+  background: var(--glass); color:#fff; outline:none;
+}
+textarea{min-height:90px;resize:vertical}
+.primary{display:block;width:100%;padding:12px;border-radius:8px;background:var(--accent);color:#fff;border:0;font-weight:600;margin-top:14px;cursor:pointer}
+.primary:hover{filter:brightness(0.95)}
+
+.msg{height:20px;margin-top:6px;color:#ffd1d1;font-weight:600;font-size:14px}
+.muted{color:var(--muted);font-size:13px}
+
+/* App layout */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;background:rgba(0,0,0,0.45)}
+.brand{font-weight:700;font-size:18px}
+.container{max-width:980px;margin:28px auto;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:rgba(0,0,0,0.55);padding:16px;border-radius:10px}
+
+.pw-wrap{display:flex;gap:8px;align-items:center}
+.icon-btn{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:6px}
+.link{background:transparent;border:0;color:#fff;cursor:pointer;text-decoration:underline}
+
+/* Responsivity */
+@media(max-width:880px){
+  .container{grid-template-columns:1fr;padding:12px}
+  .auth-card{width:92%;margin-top:20px}
+}
