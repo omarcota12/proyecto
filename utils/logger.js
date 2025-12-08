@@ -1,15 +1,23 @@
-import fs from "fs";
-import path from "path";
+// utils/logger.js
+import LoginAttempt from "../models/LoginAttempt.js";
 
-const logsDir = path.resolve("logs");
-const file = path.join(logsDir, "seguridad.log");
+export async function registrarIntentoFallido({ correo, nombre, ip, reason }) {
+  try {
+    await LoginAttempt.create({
+      email: correo,
+      name: nombre || null,
+      ip: ip || "unknown",
+      reason,
+    });
 
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir);
-  fs.writeFileSync(file, "", { encoding: "utf8" });
-}
+    console.log("🔴 Intento de login fallido registrado:", {
+      correo,
+      nombre,
+      ip,
+      reason
+    });
 
-export function registrarIntentoFallido({ ip = "unknown", correo = "unknown", reason = "" } = {}) {
-  const linea = `[${new Date().toISOString()}] FAIL - IP: ${ip} - correo: ${correo} ${reason ? "- " + reason : ""}\n`;
-  fs.appendFileSync(file, linea);
+  } catch (err) {
+    console.error("❌ Error al guardar intento fallido:", err);
+  }
 }
