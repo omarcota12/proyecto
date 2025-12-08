@@ -43,10 +43,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/api/auth", authRoutes);
 app.use("/api/crypto", cryptoRoutes);
 
-// Fallback frontend (pero ignorar APIs)
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+// Fallback → si alguien entra a "/", mándalo a login.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
 // Iniciar servidor
